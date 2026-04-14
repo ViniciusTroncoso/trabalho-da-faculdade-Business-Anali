@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard MEI Brasil — Business Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        /* ============================================
+           DESIGN TOKENS
+           ============================================ */
+        :root {
+            /* Surface */
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a1f35;
+            --bg-card-hover: #1f2545;
+            --bg-elevated: #242b45;
+
+            /* Brand */
+            --accent-primary: #6366f1;
+            --accent-primary-light: #818cf8;
+            --accent-secondary: #a78bfa;
+            --accent-tertiary: #c084fc;
+            --accent-gradient: linear-gradient(135deg, #6366f1, #a78bfa, #c084fc);
+
+            /* Semantic */
+            --color-danger: #f87171;
+            --color-danger-bg: rgba(248, 113, 113, 0.1);
+            --color-warning: #fbbf24;
+            --color-warning-bg: rgba(251, 191, 36, 0.1);
+            --color-success: #34d399;
+            --color-success-bg: rgba(52, 211, 153, 0.1);
+            --color-info: #60a5fa;
+            --color-info-bg: rgba(96, 165, 250, 0.1);
+
+            /* Text */
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --text-inverse: #0a0e1a;
+
+            /* Border */
+            --border-subtle: rgba(148, 163, 184, 0.08);
+            --border-default: rgba(148, 163, 184, 0.12);
+            --border-accent: rgba(99, 102, 241, 0.3);
+
+            /* Shadow */
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+
+            /* Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+        .dashboard {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+            padding: var(--space-2xl) var(--space-lg);
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+        }
+
+        .header-badge {
+            display: inline-block;
+            padding: var(--space-xs) var(--space-md);
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid var(--border-accent);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-primary-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: var(--space-md);
+        }
+
+        .header h1 {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--space-sm);
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Section titles */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-lg);
+            padding-left: var(--space-md);
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        /* ============================================
+           KPI CARDS (TOP)
+           ============================================ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+            border-color: var(--border-accent);
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .kpi-card.blue::after { background: var(--accent-primary); }
+        .kpi-card.purple::after { background: var(--accent-secondary); }
+        .kpi-card.red::after { background: var(--color-danger); }
+        .kpi-card.green::after { background: var(--color-success); }
+
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: var(--space-md);
+        }
+
+        .kpi-icon.blue { background: rgba(99, 102, 241, 0.15); color: var(--accent-primary-light); }
+        .kpi-icon.purple { background: rgba(167, 139, 250, 0.15); color: var(--accent-secondary); }
+        .kpi-icon.red { background: var(--color-danger-bg); color: var(--color-danger); }
+        .kpi-icon.green { background: var(--color-success-bg); color: var(--color-success); }
+
+        .kpi-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-xs);
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: var(--space-xs);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kpi-value.blue { color: var(--accent-primary-light); }
+        .kpi-value.purple { color: var(--accent-secondary); }
+        .kpi-value.red { color: var(--color-danger); }
+        .kpi-value.green { color: var(--color-success); }
+
+        .kpi-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .kpi-detail strong {
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           CHART CARDS
+           ============================================ */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            transition: border-color 0.2s ease-out;
+        }
+
+        .chart-card:hover {
+            border-color: var(--border-accent);
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-lg);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .chart-badge {
+            padding: var(--space-xs) var(--space-sm);
+            background: var(--color-danger-bg);
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--color-danger);
+            white-space: nowrap;
+        }
+
+        .chart-badge.success {
+            background: var(--color-success-bg);
+            color: var(--color-success);
+        }
+
+        .chart-badge.info {
+            background: var(--color-info-bg);
+            color: var(--color-info);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+        }
+
+        /* ============================================
+           GESTAO FINANCEIRA STATS
+           ============================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            text-align: center;
+            transition: border-color 0.2s ease-out, transform 0.2s ease-out;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-1px);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: var(--space-xs);
+            line-height: 1.4;
+        }
+
+        .stat-source {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        /* ============================================
+           METAS TABLE
+           ============================================ */
+        .table-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .table-header-bar {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: var(--space-md) var(--space-lg);
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        tbody td {
+            padding: var(--space-md) var(--space-lg);
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(99, 102, 241, 0.03);
+        }
+
+        .meta-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .status-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-tag.critical {
+            background: var(--color-danger-bg);
+            color: var(--color-danger);
+        }
+
+        .status-tag.warning {
+            background: var(--color-warning-bg);
+            color: var(--color-warning);
+        }
+
+        .status-tag.on-track {
+            background: var(--color-success-bg);
+            color: var(--color-success);
+        }
+
+        /* Progress bar in table */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(148, 163, 184, 0.1);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+            transition: width 1s ease-out;
+        }
+
+        .progress-bar-fill.danger { background: var(--color-danger); }
+        .progress-bar-fill.warning { background: var(--color-warning); }
+        .progress-bar-fill.success { background: var(--color-success); }
+        .progress-bar-fill.info { background: var(--color-info); }
+
+        /* ============================================
+           CUSTO DA INACAO
+           ============================================ */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .impact-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .impact-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+        }
+
+        .impact-card.danger::before { background: var(--color-danger); }
+        .impact-card.warning::before { background: var(--color-warning); }
+        .impact-card.info::before { background: var(--color-info); }
+
+        .impact-value {
+            font-size: 28px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: var(--space-xs);
+        }
+
+        .impact-value.danger { color: var(--color-danger); }
+        .impact-value.warning { color: var(--color-warning); }
+        .impact-value.info { color: var(--color-info); }
+
+        .impact-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .impact-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            text-align: center;
+            padding: var(--space-xl) var(--space-lg);
+            border-top: 1px solid var(--border-subtle);
+            margin-top: var(--space-xl);
+        }
+
+        .footer p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer .sources {
+            margin-top: var(--space-md);
+            font-size: 12px;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.8;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: var(--space-md);
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .kpi-value {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 700px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================================
+           ANIMATIONS
+           ============================================ */
+        @media (prefers-reduced-motion: no-preference) {
+            .kpi-card, .stat-card, .chart-card, .impact-card {
+                opacity: 0;
+                transform: translateY(12px);
+                animation: fadeUp 0.4s ease-out forwards;
+            }
+
+            @keyframes fadeUp {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+            .kpi-card:nth-child(2) { animation-delay: 0.1s; }
+            .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+            .kpi-card:nth-child(4) { animation-delay: 0.2s; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-badge">Business Analytics — Pos-Graduacao</div>
+            <h1>Dashboard MEI Brasil</h1>
+            <p>Analise de dados sobre a desinformacao e gestao financeira do Microempreendedor Individual no Brasil. Dados reais de fontes publicas.</p>
+        </header>
+
+        <!-- KPI CARDS -->
+        <section>
+            <h2 class="section-title">Indicadores Principais</h2>
+            <div class="kpi-grid">
+                <div class="kpi-card blue">
+                    <div class="kpi-icon blue">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div class="kpi-label">Total de MEIs Ativos</div>
+                    <div class="kpi-value blue">15,7 mi</div>
+                    <div class="kpi-detail">53-73% de todas as empresas ativas do Brasil</div>
+                </div>
+
+                <div class="kpi-card red">
+                    <div class="kpi-icon red">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div class="kpi-label">Taxa de Inadimplencia</div>
+                    <div class="kpi-value red">41,2%</div>
+                    <div class="kpi-detail"><strong>6,5 milhoes</strong> de MEIs inadimplentes</div>
+                </div>
+
+                <div class="kpi-card purple">
+                    <div class="kpi-icon purple">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <div class="kpi-label">Divida Media por MEI</div>
+                    <div class="kpi-value purple">R$ 2.900</div>
+                    <div class="kpi-detail"><strong>2,4 mi</strong> de MEIs na divida ativa da Uniao</div>
+                </div>
+
+                <div class="kpi-card green">
+                    <div class="kpi-icon green">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <div class="kpi-label">Sobrevivencia em 5 Anos</div>
+                    <div class="kpi-value green">71%</div>
+                    <div class="kpi-detail"><strong>29%</strong> fecham em ate 5 anos (pior taxa entre PMEs)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GESTAO FINANCEIRA STATS -->
+        <section>
+            <h2 class="section-title">Gestao Financeira do MEI</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">77%</div>
+                    <div class="stat-label">Nunca fizeram treinamento financeiro</div>
+                    <div class="stat-source">Sebrae / BCB</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">68%</div>
+                    <div class="stat-label">Sem previsao de saldo de caixa</div>
+                    <div class="stat-source">DataSebrae 2024</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">61%</div>
+                    <div class="stat-label">Misturam financas pessoais com CNPJ</div>
+                    <div class="stat-source">Sebrae 2025</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">51%</div>
+                    <div class="stat-label">Usam caderno de papel como gestao</div>
+                    <div class="stat-source">CNN Brasil / Sebrae</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">20%</div>
+                    <div class="stat-label">Usam app ou sistema digital</div>
+                    <div class="stat-source">CNN Brasil 2024</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">86%</div>
+                    <div class="stat-label">Tiveram problemas com vendas a prazo</div>
+                    <div class="stat-source">ISTOE / Sebrae</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHARTS ROW 1 -->
+        <section>
+            <h2 class="section-title">Analise Detalhada</h2>
+            <div class="charts-grid">
+
+                <!-- Inadimplencia por Estado -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Inadimplencia por Estado</div>
+                            <div class="chart-subtitle">Taxa de inadimplencia do DAS-MEI por UF</div>
+                        </div>
+                        <div class="chart-badge">Critico no Norte</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartInadimplenciaEstado" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Ferramentas de Gestao -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Ferramentas de Gestao Financeira</div>
+                            <div class="chart-subtitle">Como os MEIs controlam suas financas</div>
+                        </div>
+                        <div class="chart-badge info">80% sem digital</div>
+                    </div>
+                    <div class="chart-container" style="display:flex;justify-content:center;">
+                        <canvas id="chartFerramentas" height="300" style="max-width:380px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Serie Historica -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Evolucao do Numero de MEIs no Brasil</div>
+                            <div class="chart-subtitle">Total acumulado de MEIs registrados (2009-2025)</div>
+                        </div>
+                        <div class="chart-badge success">+55,6% desde 2020</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartCrescimento" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Exclusoes e Problemas -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Exclusoes do SIMEI por Dividas</div>
+                            <div class="chart-subtitle">MEIs excluidos do regime simplificado</div>
+                        </div>
+                        <div class="chart-badge">+262% em 2024</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartExclusoes" height="280"></canvas>
+                    </div>
+                </div>
+
+                <!-- Mortalidade por Setor -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Mortalidade por Setor (5 anos)</div>
+                            <div class="chart-subtitle">% de MEIs que fecham em ate 5 anos por setor</div>
+                        </div>
+                        <div class="chart-badge">Comercio lidera</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartMortalidade" height="280"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CUSTO DA INACAO -->
+        <section>
+            <h2 class="section-title">O Custo da Inacao</h2>
+            <div class="impact-grid">
+                <div class="impact-card danger">
+                    <div class="impact-value danger">1,46 mi</div>
+                    <div class="impact-label">Excluidos por dividas (2024)</div>
+                    <div class="impact-detail">Aumento de 262% em relacao a 2023 (403 mil)</div>
+                </div>
+                <div class="impact-card warning">
+                    <div class="impact-value warning">570 mil</div>
+                    <div class="impact-label">Desenquadrados por faturamento (2024)</div>
+                    <div class="impact-detail">Aumento de 30x em relacao a 2023 (~19 mil)</div>
+                </div>
+                <div class="impact-card danger">
+                    <div class="impact-value danger">3,2 mi</div>
+                    <div class="impact-label">Omissoes de declaracao anual</div>
+                    <div class="impact-detail">DASN-SIMEI nao entregues — risco de inaptidao</div>
+                </div>
+                <div class="impact-card info">
+                    <div class="impact-value info">R$ 1 bi</div>
+                    <div class="impact-label">Debitos MEI na ultima notificacao</div>
+                    <div class="impact-detail">Receita Federal, mar/2026 — 404 mil MEIs notificados</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- METAS E KPIs DO PROJETO -->
+        <section>
+            <h2 class="section-title">Metas e KPIs do Projeto</h2>
+            <div class="table-wrapper">
+                <div class="table-header-bar">
+                    <div class="chart-title">Metas estrategicas para a solucao de controle financeiro MEI</div>
+                    <div class="chart-subtitle" style="margin-top:4px;">Baseadas nos dados atuais do cenario MEI Brasil</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Meta</th>
+                            <th>KPI</th>
+                            <th>Baseline Atual</th>
+                            <th>Meta Proposta</th>
+                            <th>Horizonte</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="meta-name">Reduzir inadimplencia dos usuarios</td>
+                            <td>% de usuarios da plataforma com DAS em dia</td>
+                            <td>58,8% (inverso dos 41,2% inadimplentes)</td>
+                            <td>85%</td>
+                            <td>24 meses</td>
+                            <td><span class="status-tag critical">Critico</span>
+                                <div class="progress-bar-container"><div class="progress-bar-fill danger" style="width:58%"></div></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="meta-name">Adocao de controle digital</td>
+                            <td>% de MEIs usando ferramenta digital vs caderno</td>
+                            <td>20% usam digital</td>
+                            <td>60%</td>
+                            <td>18 meses</td>
+                            <td><span class="status-tag critical">Critico</span>
+                                <div class="progress-bar-container"><div class="progress-bar-fill danger" style="width:20%"></div></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="meta-name">Separacao de contas PF/PJ</td>
+                            <td>% de usuarios com conta PJ separada</td>
+                            <td>39% tem contas separadas</td>
+                            <td>75%</td>
+                            <td>12 meses</td>
+                            <td><span class="status-tag warning">Atencao</span>
+                                <div class="progress-bar-container"><div class="progress-bar-fill warning" style="width:39%"></div></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="meta-name">Previsao de fluxo de caixa</td>
+                            <td>% de usuarios com previsao de caixa ativa</td>
+                            <td>32% fazem previsao</td>
+                            <td>70%</td>
+                            <td>18 meses</td>
+                            <td><span class="status-tag critical">Critico</span>
+                                <div class="progress-bar-container"><div class="progress-bar-fill danger" style="width:32%"></div></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="meta-name">Entrega da DASN-SIMEI no prazo</td>
+                            <td>% de usuarios que declaram no prazo</td>
+                            <td>~42% entregam no prazo</td>
+                            <td>90%</td>
+                            <td>12 meses</td>
+                            <td><span class="status-tag critical">Critico</span>
+                                <div class="progress-bar-container"><div class="progress-bar-fill danger" style="width:42%"></div></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="meta-name">Aumentar sobrevivencia (5 anos)</td>
+                            <td>% de MEIs usuarios ativos apos 5 anos</td>
+                            <td>71% sobrevivem</td>
+                            <td>85%</td>
+                            <td>60 meses</td>
+                            <td><span class="status-tag on-track">Referencia</span>
+                                <div class="progress-bar-container"><div class="progress-bar-fill success" style="width:71%"></div></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="meta-name">Capacitacao financeira</td>
+                            <td>% de usuarios que completaram modulo basico</td>
+                            <td>23% buscam orientacao (Sebrae)</td>
+                            <td>50%</td>
+                            <td>12 meses</td>
+                            <td><span class="status-tag warning">Atencao</span>
+                                <div class="progress-bar-container"><div class="progress-bar-fill warning" style="width:23%"></div></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p>Dashboard MEI Brasil — Trabalho de Business Analytics — Pos-Graduacao em Gestao e Lideranca</p>
+            <div class="sources">
+                <strong>Fontes:</strong> Receita Federal do Brasil, PGFN, Sebrae/DataSebrae, IBGE (PNAD Continua), FENACON, Banco Central do Brasil, Google Trends, CNN Brasil, ISTOE Dinheiro, Agencia Brasil, Poder360.
+            </div>
+        </footer>
+    </div>
+
+    <!-- ============================================
+         CHART.JS SCRIPTS
+         ============================================ -->
+    <script>
+        // Global Chart.js config
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(148, 163, 184, 0.08)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.plugins.tooltip.backgroundColor = '#1a1f35';
+        Chart.defaults.plugins.tooltip.borderColor = 'rgba(99, 102, 241, 0.3)';
+        Chart.defaults.plugins.tooltip.borderWidth = 1;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.titleFont = { weight: '600', size: 13 };
+        Chart.defaults.plugins.tooltip.bodyFont = { size: 12 };
+
+        // Color palette
+        const colors = {
+            indigo: '#6366f1',
+            indigoLight: '#818cf8',
+            purple: '#a78bfa',
+            violet: '#c084fc',
+            red: '#f87171',
+            redDark: '#ef4444',
+            amber: '#fbbf24',
+            green: '#34d399',
+            blue: '#60a5fa',
+            cyan: '#22d3ee',
+            slate: '#64748b',
+        };
+
+        // ---- CHART 1: Inadimplencia por Estado ----
+        new Chart(document.getElementById('chartInadimplenciaEstado'), {
+            type: 'bar',
+            data: {
+                labels: ['AM', 'AP', 'RR', 'AC', 'PA', 'Media BR', 'PB', 'SC', 'MG'],
+                datasets: [{
+                    label: 'Taxa de Inadimplencia (%)',
+                    data: [63.2, 63.2, 57.4, 55.0, 54.3, 41.2, 35.3, 34.4, 32.6],
+                    backgroundColor: function(ctx) {
+                        const value = ctx.raw;
+                        if (value >= 50) return 'rgba(248, 113, 113, 0.8)';
+                        if (value >= 40) return 'rgba(251, 191, 36, 0.8)';
+                        return 'rgba(52, 211, 153, 0.8)';
+                    },
+                    borderColor: function(ctx) {
+                        const value = ctx.raw;
+                        if (value >= 50) return colors.red;
+                        if (value >= 40) return colors.amber;
+                        return colors.green;
+                    },
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `Inadimplencia: ${ctx.raw}%`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 70,
+                        ticks: {
+                            callback: v => v + '%',
+                            stepSize: 10
+                        },
+                        grid: { color: 'rgba(148, 163, 184, 0.06)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // ---- CHART 2: Ferramentas de Gestao ----
+        new Chart(document.getElementById('chartFerramentas'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Caderno/Papel', 'App/Sistema Digital', 'Planilha', 'Contador', 'Nenhum Controle'],
+                datasets: [{
+                    data: [51, 20, 15, 13, 11],
+                    backgroundColor: [
+                        colors.red,
+                        colors.indigo,
+                        colors.purple,
+                        colors.blue,
+                        colors.slate,
+                    ],
+                    borderColor: '#1a1f35',
+                    borderWidth: 3,
+                    hoverOffset: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '55%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyleWidth: 10,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.label}: ${ctx.raw}%`
+                        }
+                    }
+                }
+            }
+        });
+
+        // ---- CHART 3: Serie Historica de Crescimento ----
+        const ctxCrescimento = document.getElementById('chartCrescimento').getContext('2d');
+        const gradientCrescimento = ctxCrescimento.createLinearGradient(0, 0, 0, 300);
+        gradientCrescimento.addColorStop(0, 'rgba(99, 102, 241, 0.25)');
+        gradientCrescimento.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+        new Chart(ctxCrescimento, {
+            type: 'line',
+            data: {
+                labels: ['2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025*'],
+                datasets: [{
+                    label: 'MEIs Registrados (milhoes)',
+                    data: [0.75, 1.6, 2.6, 3.2, 3.6, 4.6, 5.4, 6.4, 7.5, 7.8, 9.5, 9.7, 13.1, 14.6, 15.7, 18.2, 22.0],
+                    borderColor: colors.indigo,
+                    backgroundColor: gradientCrescimento,
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#1a1f35',
+                    pointBorderColor: colors.indigo,
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: colors.indigo,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.raw} milhoes de MEIs`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: v => v + ' mi',
+                            stepSize: 5
+                        },
+                        grid: { color: 'rgba(148, 163, 184, 0.06)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // ---- CHART 4: Exclusoes do SIMEI ----
+        new Chart(document.getElementById('chartExclusoes'), {
+            type: 'bar',
+            data: {
+                labels: ['2023', '2024'],
+                datasets: [
+                    {
+                        label: 'Excluidos por Divida',
+                        data: [403000, 1460000],
+                        backgroundColor: 'rgba(248, 113, 113, 0.75)',
+                        borderColor: colors.red,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Desenquadrados (Faturamento)',
+                        data: [19000, 570000],
+                        backgroundColor: 'rgba(251, 191, 36, 0.75)',
+                        borderColor: colors.amber,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyleWidth: 10,
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => {
+                                const val = ctx.raw >= 1000000
+                                    ? (ctx.raw / 1000000).toFixed(2) + ' mi'
+                                    : (ctx.raw / 1000).toFixed(0) + ' mil';
+                                return `${ctx.dataset.label}: ${val}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: v => v >= 1000000 ? (v/1000000).toFixed(1) + ' mi' : (v/1000) + ' mil'
+                        },
+                        grid: { color: 'rgba(148, 163, 184, 0.06)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // ---- CHART 5: Mortalidade por Setor ----
+        new Chart(document.getElementById('chartMortalidade'), {
+            type: 'bar',
+            data: {
+                labels: ['Comercio', 'Industria Transf.', 'Servicos', 'Agropecuaria', 'Ind. Extrativa'],
+                datasets: [{
+                    label: 'Mortalidade em 5 anos (%)',
+                    data: [30.2, 27.3, 26.6, 18.0, 14.3],
+                    backgroundColor: [
+                        'rgba(248, 113, 113, 0.75)',
+                        'rgba(251, 191, 36, 0.75)',
+                        'rgba(251, 191, 36, 0.6)',
+                        'rgba(52, 211, 153, 0.6)',
+                        'rgba(52, 211, 153, 0.75)',
+                    ],
+                    borderColor: [
+                        colors.red,
+                        colors.amber,
+                        colors.amber,
+                        colors.green,
+                        colors.green,
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `Mortalidade: ${ctx.raw}%`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 35,
+                        ticks: { callback: v => v + '%' },
+                        grid: { color: 'rgba(148, 163, 184, 0.06)' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
